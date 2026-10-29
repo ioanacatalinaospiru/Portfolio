@@ -1,11 +1,7 @@
-// Butonul back.png: același comportament ca obiectele din index (hover + palpăit),
-// iar click-ul te întoarce la pagina principală (index.html).
 const back = document.querySelector(".back");
 const img = back.querySelector("img");
 const IS_TOUCH = window.matchMedia("(hover: none) and (pointer: coarse)").matches;
 
-// Forma (alpha) PNG-ului. Dacă browserul nu permite citirea pixelilor (ex. fișier deschis direct, file://),
-// se folosește dreptunghiul imaginii.
 let mask = null;
 function buildMask() {
   try {
