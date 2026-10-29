@@ -10,15 +10,10 @@ body {
   width: 100%;
   height: 100%;
   overflow: hidden;
-  background: #c68f4a; /* culoarea plutei, rezervă până se încarcă poza */
+  background: #c68f4a; 
 }
 
-/*
-  Scena are exact proporțiile pozei (2576 x 1104) și se comportă ca "background-size: cover":
-  umple tot ecranul, iar ce depășește se taie simetric, centrat.
-  Obiectele clickabile sunt poziționate în procente față de scenă, deci rămân
-  exact peste obiectele din poză la orice dimensiune de ecran.
-*/
+
 .scena {
   position: fixed;
   left: 50%;
@@ -29,30 +24,31 @@ body {
   background: url("img/fundal.jpg") center / 100% 100% no-repeat;
 }
 
-/* ---------- obiecte clickabile ---------- */
-/* amplitudinea palpăitului ca număr animabil: la hover scade lin la 0, FĂRĂ să oprim animația,
-   ca toate obiectele să rămână mereu sincronizate */
+
 @property --pa {
   syntax: "<number>";
   inherits: true;
   initial-value: 0;
 }
 
+@property --gg {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 1;
+}
+
 .item {
   position: absolute;
   display: block;
-  pointer-events: none;   /* hover-ul și click-ul sunt detectate în main.js, după forma PNG-ului */
+  pointer-events: none;  
   outline: none;
-  /* cât de mult se mărește la "palpăit": 40% din zoom-ul de la hover (poate fi suprascris cu --pulse pe element) */
   --pulse: calc(1 + (var(--zoom, 1.1) - 1) * 0.4);
   --pa: calc(var(--pulse) - 1);
-  transition: --pa 0.28s ease-out;
+  --gg: 1;
+  transition: --pa 0.28s ease-out, --gg 0.28s ease-out;
 }
 
-/*
-  Palpăit (fără blur): PNG-urile stau tot timpul fix peste locul lor din poza de fundal
-  și doar se măresc / se micșorează la loc. Toate în același timp.
-*/
+
 .item img.rest {
   display: block;
   width: 100%;
@@ -60,35 +56,37 @@ body {
   opacity: 1;
   transform: scale(1);
   transform-origin: center center;
-  scale: 1;               /* proprietate separată de "transform" (care e animat de palpăit) */
+  scale: 1;             
   transition: scale 0.28s cubic-bezier(0.2, 0.8, 0.2, 1);
   will-change: transform, scale;
-  animation: palpait 2.8s ease-in-out infinite;   /* nu se oprește niciodată => mereu sincron */
+  animation: palpait 2.8s ease-in-out infinite;   
 }
 
 @keyframes palpait {
-  0%, 100% { transform: scale(1); }
-  50%      { transform: scale(calc(1 + var(--pa))); }
+  0%, 100% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 1px rgba(255, 255, 255, calc(1 - var(--gg))))
+            drop-shadow(0 0 4px rgba(255, 255, 255, calc(0.95 * (1 - var(--gg)))));
+  }
+  50% {
+    transform: scale(calc(1 + var(--pa)));
+    filter: drop-shadow(0 0 1px rgba(255, 255, 255, 1))
+            drop-shadow(0 0 4px rgba(255, 255, 255, 0.95));
+  }
 }
 
-/* ---------- hover (doar PC): obiectul se mărește complet și primește highlight ---------- */
 .item.is-active,
 .item:focus-visible {
   z-index: 5;
-  --pa: 0;                /* palpăitul se liniștește cât e sub mouse, dar animația continuă în fundal */
+  --pa: 0;               
+  --gg: 0;                
 }
 
 .item.is-active img.rest,
 .item:focus-visible img.rest {
-  scale: var(--zoom, 1.1);
-  filter: drop-shadow(0 0 1px #fff) drop-shadow(0 0 4px rgba(255, 255, 255, 0.95));
+  scale: var(--zoom, 1.1);   
 }
 
-/* ---------- macheta ----------
-   repaus: machetajumatate.png (palpăie, fix peste poza de fundal)
-   hover (PC): macheta.png iese în prim-plan, peste toate celelalte; se mărește până ajunge
-   exact peste poza veche din fundal și continuă spre stânga cu partea nouă.
-   Poza mare are exact dimensiunile finale (față de <a>), iar în repaus e micșorată la 1/1.3 din punctul de origine. */
 #macheta img.big {
   position: absolute;
   left: -80.80%;
@@ -104,19 +102,38 @@ body {
 }
 
 #macheta.is-active,
-#macheta:focus-visible { z-index: 20; }
+#macheta:focus-visible,
+#map.is-active,
+#map:focus-visible { z-index: 20; }
 
 #macheta.is-active img.rest,
-#macheta:focus-visible img.rest {
+#macheta:focus-visible img.rest,
+#map.is-active img.rest,
+#map:focus-visible img.rest {
   opacity: 0;
-  filter: none;
 }
 
 #macheta.is-active img.big,
-#macheta:focus-visible img.big {
+#macheta:focus-visible img.big,
+#map.is-active img.big,
+#map:focus-visible img.big {
   opacity: 1;
   transform: scale(1);
   filter: drop-shadow(0 0 1px #fff) drop-shadow(0 0 4px rgba(255, 255, 255, 0.95));
+}
+
+#map img.big {
+  position: absolute;
+  left: 5.1669%;
+  top: -1.8609%;
+  width: 88.5700%;
+  height: 101.8814%;
+  display: block;
+  opacity: 0;
+  transform: scale(0.9434);   
+  transform-origin: 50% 50%;
+  transition: opacity 0.18s ease-out, transform 0.28s cubic-bezier(0.2, 0.8, 0.2, 1);
+  will-change: transform, opacity;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -124,42 +141,9 @@ body {
   .item img { transition-duration: 0.12s; }
 }
 
-/* ---------- header / footer transparente (doar textul se vede) ---------- */
-.bar {
-  position: fixed;
-  left: 0;
-  right: 0;
-  z-index: 100;
-  padding: 0 clamp(14px, 2vw, 28px);
-  pointer-events: none;   /* nu blochează click-urile pe scenă */
-  background: transparent;
-  color: #fff;
-  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-  font-size: clamp(13px, 1.1vw, 17px);
-  letter-spacing: 0.06em;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
-}
-.bar--top {
-  top: 0;
-  padding-top: max(14px, env(safe-area-inset-top));
-}
-.bar--bottom {
-  bottom: 0;
-  padding-bottom: max(14px, env(safe-area-inset-bottom));
-}
-.bar--bottom span { text-transform: uppercase; letter-spacing: 0.14em; font-size: 0.85em; }
 
-/* ---------- săgeți de swipe: ascunse pe PC ---------- */
 .swipe-hint { display: none; }
 
-/* ============================================================
-   DOAR TELEFON / TABLETĂ (ecran touch, fără mouse)
-   - pagina se derulează doar stânga/dreapta, nu și sus/jos
-   - fără hover: rămâne doar palpăitul
-   - macheta rămâne varianta "jumătate"
-   - săgețile de swipe sunt PNG-uri
-   Pe PC nu se aplică nimic din blocul acesta.
-   ============================================================ */
 @media (hover: none) and (pointer: coarse) {
   html { overflow: hidden; }
 
@@ -168,13 +152,12 @@ body {
     overflow-x: auto;
     overflow-y: hidden;
     overscroll-behavior: none;
-    touch-action: pan-x;               /* doar gest orizontal */
+    touch-action: pan-x;               
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
   }
   body::-webkit-scrollbar { display: none; }
 
-  /* scena nu mai e centrată/tăiată, ci e întreagă la înălțimea ecranului și se derulează */
   .scena {
     position: relative;
     left: auto;
@@ -187,15 +170,15 @@ body {
     flex: none;
   }
 
-  /* fără hover pe telefon */
-  #macheta img.big { display: none; }
+  #macheta img.big,
+  #map img.big { display: none; }
 
   .swipe-hint {
     position: fixed;
     top: 50%;
     z-index: 90;
     display: block;
-    width: 76px;               /* aceeași mărime vizibilă ca înainte (~44px pentru desenul din PNG) */
+    width: 76px;              
     height: auto;
     margin-top: -23px;
     pointer-events: none;
