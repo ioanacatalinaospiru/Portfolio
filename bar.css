@@ -34,7 +34,7 @@
 
 .bar {
   --footer-size: clamp(29.4px, 2.486vw, 38.4px);    
-  --bar-size: clamp(26px, 2.2vw, 34px);   
+  --bar-size: clamp(13px, 1.1vw, 17px);  
   position: fixed;
   left: 0;
   right: 0;
