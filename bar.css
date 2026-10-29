@@ -33,14 +33,14 @@
 }
 
 .bar {
-  --footer-size: clamp(29.4px, 2.486vw, 38.4px);   /* mărimea footerului ("WORKSPACE."), independentă de header; valoarea de acum */
-  --bar-size: clamp(26px, 2.2vw, 34px);   /* mărimea textului din header (dublu față de înainte: era clamp(13px, 1.1vw, 17px)) */
+  --footer-size: clamp(29.4px, 2.486vw, 38.4px);    
+  --bar-size: clamp(26px, 2.2vw, 34px);   
   position: fixed;
   left: 0;
   right: 0;
   z-index: 100;
   padding: 0 clamp(14px, 2vw, 28px);
-  pointer-events: none;                   /
+  pointer-events: none;                   
   background: transparent;
   font-family: "Plus Jakarta Sans", Arial, sans-serif;
   font-weight: 700;                        
