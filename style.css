@@ -13,17 +13,16 @@ body {
   background: #c68f4a; 
 }
 
-
 .scena {
   position: fixed;
   left: 50%;
   top: 50%;
   width: max(100vw, calc(100dvh * 2576 / 1104));
   aspect-ratio: 2576 / 1104;
-  transform: translate(-50%, -50%);
+  transform: translate(-50%, -50%) translate(var(--tx, 0px), var(--ty, 0px)) scale(var(--z, 1));  /* --tx/--ty/--z: zoom + pan pe PC (main.js) */
+  transform-origin: center center;
   background: url("img/fundal.jpg") center / 100% 100% no-repeat;
 }
-
 
 @property --pa {
   syntax: "<number>";
@@ -48,7 +47,6 @@ body {
   transition: --pa 0.28s ease-out, --gg 0.28s ease-out;
 }
 
-
 .item img.rest {
   display: block;
   width: 100%;
@@ -56,7 +54,7 @@ body {
   opacity: 1;
   transform: scale(1);
   transform-origin: center center;
-  scale: 1;             
+  scale: 1;               
   transition: scale 0.28s cubic-bezier(0.2, 0.8, 0.2, 1);
   will-change: transform, scale;
   animation: palpait 2.8s ease-in-out infinite;   
@@ -78,7 +76,7 @@ body {
 .item.is-active,
 .item:focus-visible {
   z-index: 5;
-  --pa: 0;               
+  --pa: 0;                
   --gg: 0;                
 }
 
@@ -130,7 +128,7 @@ body {
   height: 101.8814%;
   display: block;
   opacity: 0;
-  transform: scale(0.9434);   
+  transform: scale(0.9434);  
   transform-origin: 50% 50%;
   transition: opacity 0.18s ease-out, transform 0.28s cubic-bezier(0.2, 0.8, 0.2, 1);
   will-change: transform, opacity;
@@ -141,8 +139,8 @@ body {
   .item img { transition-duration: 0.12s; }
 }
 
-
 .swipe-hint { display: none; }
+
 
 @media (hover: none) and (pointer: coarse) {
   html { overflow: hidden; }
@@ -152,8 +150,7 @@ body {
     overflow-x: auto;
     overflow-y: hidden;
     overscroll-behavior: none;
-    touch-action: pan-x;               
-    -webkit-overflow-scrolling: touch;
+    touch-action: pan-x pinch-zoom;    
     scrollbar-width: none;
   }
   body::-webkit-scrollbar { display: none; }
@@ -178,7 +175,7 @@ body {
     top: 50%;
     z-index: 90;
     display: block;
-    width: 76px;              
+    width: 76px;               
     height: auto;
     margin-top: -23px;
     pointer-events: none;
