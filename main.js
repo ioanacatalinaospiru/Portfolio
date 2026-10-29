@@ -39,7 +39,7 @@ function setActive(item) {
   if (active) active.classList.remove("is-active");
   active = item;
   if (active) active.classList.add("is-active");
-  scena.style.cursor = active ? "pointer" : "";
+  scena.style.cursor = active ? "pointer" : (typeof z !== "undefined" && z > 1 ? "grab" : "");
 }
 
 if (!IS_TOUCH) {
@@ -47,7 +47,68 @@ if (!IS_TOUCH) {
   scena.addEventListener("pointerleave", () => setActive(null));
 }
 
+const Z_MIN = 1, Z_MAX = 4;
+let z = 1, tx = 0, ty = 0, dragged = false;
+
+function applyZoom() {
+  const W = scena.offsetWidth, H = scena.offsetHeight;
+  const mx = Math.max(0, (W * z - window.innerWidth) / 2);
+  const my = Math.max(0, (H * z - window.innerHeight) / 2);
+  tx = Math.min(mx, Math.max(-mx, tx));
+  ty = Math.min(my, Math.max(-my, ty));
+  scena.style.setProperty("--z", z);
+  scena.style.setProperty("--tx", tx + "px");
+  scena.style.setProperty("--ty", ty + "px");
+  scena.style.cursor = z > 1 ? "grab" : "";
+}
+
+function zoomAt(newZ, px, py) {
+  newZ = Math.min(Z_MAX, Math.max(Z_MIN, newZ));
+  const cx = window.innerWidth / 2, cy = window.innerHeight / 2;
+  const k = newZ / z;
+  tx = px - cx - k * (px - cx - tx);
+  ty = py - cy - k * (py - cy - ty);
+  z = newZ;
+  if (z === 1) { tx = 0; ty = 0; } 
+  applyZoom();
+}
+
+if (!IS_TOUCH) {
+  window.addEventListener("wheel", (e) => {
+    if (!(e.ctrlKey || e.metaKey)) return;
+    e.preventDefault();
+    zoomAt(z * Math.exp(-e.deltaY * 0.01), e.clientX, e.clientY);
+  }, { passive: false });
+
+  window.addEventListener("keydown", (e) => {
+    if (!(e.ctrlKey || e.metaKey) && !["+", "=", "-", "0"].includes(e.key)) return;
+    const cx = window.innerWidth / 2, cy = window.innerHeight / 2;
+    if (e.key === "+" || e.key === "=") { e.preventDefault(); zoomAt(z * 1.25, cx, cy); }
+    else if (e.key === "-")             { e.preventDefault(); zoomAt(z / 1.25, cx, cy); }
+    else if (e.key === "0")             { e.preventDefault(); zoomAt(1, cx, cy); }
+  });
+
+  let drag = null;
+  scena.addEventListener("pointerdown", (e) => {
+    if (z <= 1 || e.button !== 0) return;
+    drag = { x: e.clientX, y: e.clientY, tx, ty };
+    dragged = false;
+  });
+  window.addEventListener("pointermove", (e) => {
+    if (!drag) return;
+    const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
+    if (!dragged && Math.hypot(dx, dy) < 5) return;
+    dragged = true;
+    tx = drag.tx + dx; ty = drag.ty + dy;
+    scena.style.cursor = "grabbing";
+    applyZoom();
+  });
+  window.addEventListener("pointerup", () => { if (drag) { drag = null; applyZoom(); } });
+  window.addEventListener("resize", applyZoom);
+}
+
 scena.addEventListener("click", (e) => {
+  if (dragged) { dragged = false; return; } 
   const item = pick(e.clientX, e.clientY);
   if (item) item.click(); 
 });
